@@ -32,19 +32,21 @@ public class Filter extends AbstractFilter {
             }
         }
         if (debugLevel != Config.LogLevel.NONE && !Objects.equals(event.getLoggerName(), MOD_NAME)) {
-            logEvents(debugLevel, event);
+            logEvents(event);
             return Result.DENY;
         }
         return Result.NEUTRAL;
     }
 
-    private void logEvents(Config.LogLevel logEventsLevel, LogEvent event) {
+    private void logEvents(LogEvent event) {
+        Throwable throwable = event.getMessage().getThrowable();
         Level level = Level.INFO;
         try {
-            Level.valueOf(logEventsLevel.name());
-        } catch (IllegalArgumentException ignored) {}
-        Throwable throwable = event.getMessage().getThrowable();
-        Constants.LOG.atLevel(level).log("""
+            level = Level.valueOf(event.getLevel().name());
+        } catch (IllegalArgumentException ignored) {
+        }
+        Object[] params = event.getMessage().getParameters();
+        Constants.LOG. atLevel(level).log("""
                 Logging event:
                     - Level: {}
                     - Logger name: {}
@@ -60,7 +62,7 @@ public class Filter extends AbstractFilter {
                 throwable != null ? throwable.getClass().getName() : null,
                 event.getMessage().getFormattedMessage(),
                 event.getMessage().getFormat(),
-                Arrays.toString(Arrays.stream(event.getMessage().getParameters()).map(param -> param.getClass().getName()).toArray())
+                Arrays.toString(Arrays.stream(params != null ? params : new Object[0]).map(param -> param != null ? param.getClass().getName() : "null").toArray())
         );
     }
 }

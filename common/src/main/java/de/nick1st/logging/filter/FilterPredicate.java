@@ -69,7 +69,7 @@ public class FilterPredicate implements Predicate<LogEvent> {
                     event -> logEventStringFunction.apply(event).matches(stringComparable.value); // TODO This can be optimized
             case null -> throw new IllegalStateException("Unexpected value: " + null);
         };
-        if (!reentry) {
+        if (!reentry && !stringComparable.whitelist.isEmpty()) {
             p = p.and(createStringMatchPredicates(stringComparable.whitelist, logEventStringFunction, true).negate());
         }
         return p;
